@@ -34,16 +34,17 @@ ctrlTask.getTasks = async (req, res) => {
 
 ctrlTask.putTasks = async (req, res) => {
     const id = req.params.id;
-    const { titulo, descripcion, ...otroDatos } = req.body;
+    
+    const { title, description, ...otroDatos } = req.body;
 
-    if (!id || !descripcion || !titulo) {
+    if (!id || !description || !title) {
         return res.status(400).json({
             msg: 'No viene id en la petición',
         });
     };
 
     try {
-        const tareaActualizada = await Tasks.findByIdAndUpdate(id, { titulo, descripcion })
+        const tareaActualizada = await Tasks.findByIdAndUpdate(id, { title, description })
 
         return res.json({
             msg: 'Tarea actualizada correctamente',

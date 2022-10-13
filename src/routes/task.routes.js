@@ -13,11 +13,11 @@ router.get('/task', [
     validarJWT
 ], getTasks);
 
-router.put('/task', [
+router.put('/task/:id', [
     validarJWT
 ], putTasks)
 
-router.delete('/task', [
+router.delete('/task/:id', [
     validarJWT
 ], deleteTasks)
 
