@@ -27,24 +27,35 @@ ctrlTask.createTask = async (req, res) => {
 }
 
 ctrlTask.getTasks = async (req, res) => {
-    const tasks = await Tasks.find({ userId: req.user._id })
+    const tasks = await Tasks.find({$and: [{userId: req.user._id}, {isActive: true}]})
     .populate('userId', ['username','email'])
     return res.json(tasks);
 }
 
 ctrlTask.putTasks = async (req, res) => {
-    const id = req.params.id;
-    
-    const { title, description, ...otroDatos } = req.body;
-
-    if (!id || !description || !title) {
-        return res.status(400).json({
-            msg: 'No viene id en la petición',
-        });
-    };
-
     try {
-        const tareaActualizada = await Tasks.findByIdAndUpdate(id, { title, description })
+        const idTask = req.params.id;
+        const userID=req.user._id
+        const Task = await Tasks.findById(idTask);
+
+        const userIdString = userID.toString();
+        const tareaIdString = Task.userId.toString();
+
+        if (!(userIdString === tareaIdString)) {
+            return res.status(400).json({
+                message: 'No tienes permiso para actualizar esta tarea tarea'
+            })
+        }
+        
+        const { title, description, ...otroDatos } = req.body;
+
+        if (!idTask || !description || !title) {
+            return res.status(400).json({
+                msg: 'No viene id en la petición',
+            });
+        };
+
+        const tareaActualizada = await Tasks.findByIdAndUpdate(idUser, { title, description })
 
         return res.json({
             msg: 'Tarea actualizada correctamente',
@@ -58,10 +69,20 @@ ctrlTask.putTasks = async (req, res) => {
 };
 
 ctrlTask.deleteTasks = async (req, res) => {
-    const id = req.params.id;
-
     try {
-        await Tasks.findByIdAndUpdate(id, { isActive: false })
+        const idTask = req.params.id;
+        const userID=req.user._id
+        const Task = await Tasks.findOne({$and:[{_id:idTask},{isActive:true}]})
+
+        const userIDString = userID.toString() 
+        const tareaIDString = Task.userId.toString()
+
+        if(!(userIDString === tareaIDString)) {
+            return res.status(401).json({
+                msg: 'Usuario sin permisos para eliminar la tarea'
+            })
+        }
+        await Tasks.findByIdAndUpdate(idTask, { isActive: false })
         return res.json('Tarea eliminada correctamente');
     } catch (err) {
         console.log(err.message)
